@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ma carte — Le Loup-Garou</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body class="night">
+<div class="wrap etroit">
+  <div class="masthead">
+    <div><div class="sub" id="sousTitre">Thiercelieux</div><h1 id="monNom">…</h1></div>
+    <div class="etat" id="etat"><span class="dot"></span>connexion</div>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+var moi = null, ETAT = null, montre = false;
+try{ moi = JSON.parse(localStorage.getItem("lg_joueur") || "null"); }catch(e){}
+if(!moi || !moi.code || !moi.token) location.href = "/loup-garou/";
+
+var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+var app = document.getElementById("app");
+
+/* ---------- flux ---------- */
+var source = null, perdu = false;
+function brancher(){
+  if(source) source.close();
+  source = new EventSource("/sse?code=" + encodeURIComponent(moi.code) + "&token=" + encodeURIComponent(moi.token) + "&role=joueur");
+  source.onmessage = function(ev){
+    var d = JSON.parse(ev.data);
+    if(d.type === "inconnu"){ reinscrire(); return; }
+    perdu = false;
+    ETAT = d;
+    if(ETAT.moi) { moi.nom = ETAT.moi.nom; document.getElementById("monNom").textContent = ETAT.moi.nom; }
+    majEtat("en jeu", true);
+    rendre();
+  };
+  source.onerror = function(){ perdu = true; majEtat("reconnexion…", false); };
+}
+function majEtat(txt, ok){
+  document.getElementById("etat").innerHTML = '<span class="dot' + (ok ? "" : " off") + '"></span>' + txt;
+}
+/* le serveur a pu redémarrer et perdre sa mémoire : on reprend sa place avec l'identité locale */
+function reinscrire(){
+  fetch("/api/reprendre-joueur", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({code:moi.code, token:moi.token, id:moi.id, nom:moi.nom})})
+  .then(function(r){ return r.json(); })
+  .then(function(r){ if(r.ok) brancher(); else { majEtat("session close", false); } })
+  .catch(function(){ majEtat("hors ligne", false); });
+}
+brancher();
+setInterval(function(){ if(perdu) reinscrire(); }, 5000);
+
+/* ---------- rendu ---------- */
+function rendre(){
+  var p = (ETAT && ETAT.public) || {}, pr = ETAT && ETAT.prive;
+  document.body.className = (p.phase === "jour" || p.ecran === "fin") ? "day" : "night";
+  document.getElementById("sousTitre").textContent = p.label || "Thiercelieux";
+
+  var h = "";
+
+  /* salle d'attente */
+  if(!pr){
+    h += '<div class="panel fade"><p class="eyebrow">Salle d\'attente</p>' +
+      '<h2>Tu es dans le village</h2>' +
+      '<p class="muted" style="margin-top:12px">Le meneur distribue les cartes dans un instant. Garde ton écran pour toi.</p>' +
+      '<p class="note">Partie <strong>' + esc(moi.code) + '</strong> · <a href="#" id="quitter">changer de prénom</a></p></div>';
+    app.innerHTML = h;
+    brancherQuitter();
+    return;
+  }
+
+  /* ma carte */
+  h += '<div class="panel fade"><p class="eyebrow">Ma carte</p>';
+  if(montre){
+    h += '<div class="card-face"><div class="camp">' + esc(pr.camp) + '</div>' +
+      '<div class="rn">' + esc(pr.nom) + '</div><div class="rd">' + esc(pr.desc) + '</div></div>' +
+      '<div class="btn-row"><button class="btn btn-ghost" data-act="cacher">Cacher ma carte</button></div>';
+    if(pr.meute && pr.meute.length)
+      h += '<div class="flash warn"><div class="h">Ta meute</div>' + esc(pr.meute.join(" · ")) + '</div>';
+    if(pr.amoureux)
+      h += '<div class="flash"><div class="h">Amoureux</div>Cupidon t\'a lié à <strong>' + esc(pr.amoureux) +
+        '</strong>. Si l\'un meurt, l\'autre meurt de chagrin.</div>';
+    if(pr.notes) h += '<div class="flash"><div class="h">Mon pouvoir</div>' + esc(pr.notes) + '</div>';
+  } else {
+    h += '<div class="hidden-card">Carte face cachée</div>' +
+      '<div class="btn-row"><button class="btn" data-act="montrer">Voir ma carte</button></div>';
+  }
+  if(pr.capitaine) h += '<div class="flash"><div class="h">Capitaine</div>Ta voix compte double. En mourant, tu désignes ton successeur.</div>';
+  if(!pr.alive) h += '<div class="flash warn"><div class="h">Éliminé</div>' + esc(pr.cause || "Tu es mort.") +
+    ' Tu ne communiques plus avec les vivants — de quelque manière que ce soit.</div>';
+  h += '</div>';
+
+
+  if(p.joueurs && p.joueurs.length){
+    var vivants = p.joueurs.filter(function(x){ return x.alive; }).length;
+    h += '<div class="panel fade"><p class="eyebrow">Le village</p><h3>' + vivants + ' en vie</h3><ul class="roster">';
+    p.joueurs.forEach(function(x){
+      h += '<li class="' + (x.alive ? "" : "dead") + '"><span class="nm">' + esc(x.nom) + '</span>' +
+        (x.capitaine ? '<span class="badge b-cap">Cap</span>' : '') +
+        '<span class="rl">' + (x.alive ? "" : esc(x.role || "") + (x.cause ? '<br><span style="opacity:.7">' + esc(x.cause) + '</span>' : "")) + '</span></li>';
+    });
+    h += '</ul></div>';
+  }
+
+  /* ambiance / consigne */
+  if(p.message) h += '<div class="panel fade"><p class="eyebrow">' + (p.phase === "nuit" ? "Cette nuit" : "En ce moment") + '</p>' +
+    '<div class="grand">' + esc(p.message) + '</div></div>';
+
+  if(p.ecran === "fin" && p.vainqueur)
+    h += '<div class="panel fade" style="text-align:center"><p class="eyebrow">Fin de partie</p>' +
+      '<div class="grand">' + esc(p.vainqueur) + '</div>' +
+      '<p class="note" style="text-align:left"><a href="#" id="quitter">Quitter la partie</a></p></div>';
+
+  app.innerHTML = h;
+  brancherQuitter();
+}
+function brancherQuitter(){
+  var q = document.getElementById("quitter");
+  if(q) q.addEventListener("click", function(e){
+    e.preventDefault();
+    localStorage.removeItem("lg_joueur");
+    location.href = "/loup-garou/";
+  });
+}
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-act]");
+  if(!b) return;
+  if(b.dataset.act === "montrer"){ montre = true; rendre(); }
+  if(b.dataset.act === "cacher"){ montre = false; rendre(); }
+});
+/* on masque la carte dès que le téléphone est reposé */
+document.addEventListener("visibilitychange", function(){ if(document.hidden){ montre = false; rendre(); } });
+</script>
+</body>
+</html>

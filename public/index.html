@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jeux de société — choisir une partie</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .jeux{display:grid;gap:16px;margin-top:22px}
+  .jeu{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--bd);
+    border-radius:10px;padding:22px 20px;transition:border-color .2s ease,transform .06s ease}
+  .jeu:hover{border-color:var(--accent)}
+  .jeu:active{transform:translateY(1px)}
+  .jeu .eyebrow{margin-bottom:8px}
+  .jeu h2{margin-bottom:6px}
+  .jeu p{margin:0;color:var(--fg-dim);font-size:14px;line-height:1.5}
+  .jeu .go{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+  .jeu.imp{border-left:3px solid var(--ext)}
+  .jeu.imp .eyebrow,.jeu.imp .go{color:var(--ext)}
+</style>
+</head>
+<body class="night">
+<div class="wrap etroit">
+  <div class="masthead">
+    <div><div class="sub">Ce soir on joue à</div><h1>Deux jeux de déduction</h1></div>
+  </div>
+
+  <div class="jeux">
+    <a class="jeu" href="/loup-garou/">
+      <p class="eyebrow">Meneur + joueurs</p>
+      <h2>Le Loup-Garou de Thiercelieux</h2>
+      <p>Un meneur pilote la partie depuis sa console ; chaque joueur reçoit sa carte
+         et suit la nuit sur son propre téléphone.</p>
+      <span class="go">Rejoindre une partie →</span>
+    </a>
+
+    <a class="jeu imp" href="/imposteur/">
+      <p class="eyebrow">Sans meneur</p>
+      <h2>Imposteur — Dossier confidentiel</h2>
+      <p>Deux personnages très proches, distribués en secret. Un mot chacun, deux tours,
+         et personne ne sait qui détient quoi.</p>
+      <span class="go">Créer ou rejoindre un salon →</span>
+    </a>
+  </div>
+
+  <p class="note">
+    Le meneur du Loup-Garou passe directement par
+    <a href="/loup-garou/mj.html">la console du meneur</a>.
+  </p>
+</div>
+</body>
+</html>

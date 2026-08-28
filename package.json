@@ -1,0 +1,12 @@
+{
+  "name": "jeux-deduction",
+  "version": "1.0.0",
+  "description": "Deux jeux de déduction sur un seul service : Le Loup-Garou de Thiercelieux et Imposteur.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

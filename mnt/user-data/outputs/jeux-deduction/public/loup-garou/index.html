@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rejoindre une partie — Le Loup-Garou</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body class="night">
+<div class="wrap etroit">
+  <div class="masthead">
+    <div><div class="sub">Le village de</div><h1>Thiercelieux</h1></div>
+  </div>
+  <div class="panel">
+    <p class="eyebrow">Rejoindre</p>
+    <h2>Entre dans le village</h2>
+    <div class="field" style="margin-top:18px">
+      <label class="lbl" for="code">Code de la partie</label>
+      <input type="text" id="code" maxlength="4" autocapitalize="characters" autocomplete="off"
+             inputmode="text" placeholder="ABCD" style="font-family:var(--mono);font-size:26px;letter-spacing:.3em;text-align:center">
+    </div>
+    <div class="field">
+      <label class="lbl" for="nom">Ton prénom</label>
+      <input type="text" id="nom" maxlength="24" autocomplete="given-name" placeholder="Comment on t'appelle à table ?">
+    </div>
+    <div id="err" class="small bad" style="min-height:20px"></div>
+    <div class="btn-row"><button class="btn" id="go">Rejoindre la partie</button></div>
+    <p class="note">Tu es le meneur ? <a href="/loup-garou/mj.html">Ouvre la console du meneur</a> pour créer une partie et obtenir le code.</p>
+  </div>
+</div>
+<script>
+var q = new URLSearchParams(location.search);
+var champCode = document.getElementById("code"), champNom = document.getElementById("nom"), err = document.getElementById("err");
+if(q.get("c")) champCode.value = q.get("c").toUpperCase();
+try{
+  var m = JSON.parse(localStorage.getItem("lg_joueur") || "null");
+  if(m && m.nom) champNom.value = m.nom;
+  if(m && m.code && !champCode.value) champCode.value = m.code;
+}catch(e){}
+champCode.addEventListener("input", function(){ champCode.value = champCode.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
+
+function rejoindre(){
+  var code = champCode.value.trim().toUpperCase(), nom = champNom.value.trim();
+  if(code.length !== 4) return err.textContent = "Le code fait 4 caractères.";
+  if(!nom) return err.textContent = "Il faut un prénom.";
+  err.textContent = "";
+  fetch("/api/rejoindre", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({code:code, nom:nom})})
+  .then(function(r){ return r.json(); })
+  .then(function(r){
+    if(!r.ok){ err.textContent = r.erreur || "Impossible de rejoindre."; return; }
+    localStorage.setItem("lg_joueur", JSON.stringify({code:code, token:r.token, id:r.id, nom:r.nom}));
+    location.href = "/loup-garou/joueur.html";
+  })
+  .catch(function(){ err.textContent = "Le serveur ne répond pas."; });
+}
+document.getElementById("go").addEventListener("click", rejoindre);
+champNom.addEventListener("keydown", function(e){ if(e.key === "Enter") rejoindre(); });
+</script>
+</body>
+</html>

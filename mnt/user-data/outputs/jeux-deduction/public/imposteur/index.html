@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>IMPOSTEUR EN LIGNE — Dossier confidentiel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14161d; --bg-2:#1b1e28; --bg-3:#20232f;
+    --paper:#ece2cf; --paper-2:#e2d5b8; --paper-shadow:#c9b98e;
+    --ink:#2a2419; --ink-soft:#4a4232; --cream:#ece5d6; --muted:#8b8778;
+    --stamp:#a3392a; --stamp-2:#3f6b4c; --gold:#c99a4b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, #232635 0%, transparent 60%), var(--bg);
+    color:var(--cream); font-family:'IBM Plex Sans', sans-serif;
+    display:flex; flex-direction:column; align-items:center; padding:20px 14px 60px;
+  }
+  .stage{ width:100%; max-width:460px; }
+  .masthead{ text-align:center; margin-bottom:20px; }
+  .masthead .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.28em; color:var(--muted); text-transform:uppercase; }
+  .masthead h1{ font-family:'Special Elite', monospace; font-size:32px; letter-spacing:.05em; margin:4px 0 2px; text-shadow: 2px 2px 0 rgba(163,57,42,0.35); }
+  .masthead .sub{ font-size:12px; color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+
+  .folder{ background:var(--paper); border-radius:3px; padding:24px 20px; box-shadow: 0 18px 40px rgba(0,0,0,0.4); color:var(--ink); min-height:200px; }
+  h2.title{ font-family:'Special Elite', monospace; font-size:19px; margin:0 0 4px; }
+  p.desc{ font-size:13px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5; }
+
+  label.flabel{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px; }
+  input[type=text]{ width:100%; padding:11px 12px; border:1.5px solid var(--ink); background:#fbf7ec; border-radius:2px; font-family:'IBM Plex Sans', sans-serif; font-size:15px; color:var(--ink); }
+  input[type=text]:focus{ outline:2px solid var(--stamp); outline-offset:1px; }
+  input.code-input{ font-family:'Special Elite', monospace; font-size:22px; letter-spacing:.3em; text-align:center; text-transform:uppercase; }
+  .field{ margin-bottom:14px; }
+
+  .btn{ display:block; width:100%; padding:14px 16px; border:2px solid var(--ink); background:var(--ink); color:var(--paper);
+    font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:.1em; text-transform:uppercase; font-weight:600;
+    border-radius:2px; cursor:pointer; text-align:center; }
+  .btn:active{ transform: scale(0.98); }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .btn.outline{ background:transparent; color:var(--ink); }
+  .btn.dark{ background:var(--stamp); border-color:var(--stamp); color:#fbf3ea; }
+  .btn.sm{ padding:9px 10px; font-size:11.5px; }
+  .btn-row{ display:flex; gap:10px; margin-top:14px; }
+  .hint{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); text-align:center; margin-top:10px; }
+
+  .stepper{ display:flex; align-items:center; gap:14px; }
+  .stepper button{ width:36px; height:36px; border-radius:50%; border:2px solid var(--ink); background:transparent; color:var(--ink);
+    font-size:17px; font-weight:700; cursor:pointer; line-height:1; }
+  .stepper .count{ font-family:'Special Elite', monospace; font-size:24px; min-width:30px; text-align:center; }
+
+  .toggle-row{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .toggle-row button{ flex:1; min-width:70px; padding:9px 6px; border:1.5px solid var(--ink); background:transparent; color:var(--ink);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase; border-radius:2px; cursor:pointer; }
+  .toggle-row button.on{ background:var(--ink); color:var(--paper); }
+
+  .code-box{ text-align:center; padding:14px 10px; border:1.5px dashed var(--gold); border-radius:4px; margin-bottom:16px; background:#fbf7ec; }
+  .code-box .code{ font-family:'Special Elite', monospace; font-size:34px; letter-spacing:.28em; }
+  .link-input{ font-family:'IBM Plex Mono', monospace !important; font-size:11.5px !important; text-align:center; background:#fff !important; cursor:pointer; margin-top:4px; }
+
+  .player-list{ list-style:none; padding:0; margin:0 0 14px; }
+  .player-list li{ display:flex; align-items:center; justify-content:space-between; padding:9px 11px; border:1px solid var(--paper-shadow);
+    border-radius:2px; background:#fbf7ec; margin-bottom:6px; font-size:13.5px; }
+  .player-list li.me{ border-color:var(--stamp); }
+  .player-list .tag{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--stamp); }
+  .player-list .rm{ border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:13px; }
+
+  .my-card{ border:2px solid var(--ink); border-radius:4px; padding:18px; text-align:center; margin-bottom:18px; background:#fbf3ea; }
+  .my-card .lbl{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+  .my-card .val{ font-family:'Special Elite', monospace; font-size:26px; margin-top:8px; }
+  .my-card .note{ font-size:11.5px; color:var(--ink-soft); margin-top:8px; }
+
+  .turn-box{ text-align:center; padding:16px 10px; }
+  .turn-box .label{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.1em; }
+  .order-strip{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px; }
+  .order-chip{ font-family:'IBM Plex Mono', monospace; font-size:10px; padding:4px 8px; border-radius:20px; border:1px solid var(--paper-shadow); color:var(--ink-soft); }
+
+  .reveal-list{ display:flex; flex-direction:column; gap:7px; margin:6px 0 4px; }
+  .reveal-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border:1.5px solid var(--paper-shadow); border-radius:2px; background:#fbf7ec; }
+  .reveal-row.imp{ border-color:var(--stamp); background:#f7e9e2; }
+  .reveal-row-name{ font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:7px; }
+  .imp-tag{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:#fff; background:var(--stamp); padding:2px 6px; border-radius:20px; }
+  .imp-tag.zgeg{ background:var(--ink-soft); }
+  .reveal-row-char{ font-family:'Special Elite', monospace; font-size:14px; color:var(--ink-soft); }
+
+  .error-box{ background:#f7e9e2; border:1.5px solid var(--stamp); border-radius:2px; padding:12px; font-size:12.5px; color:var(--stamp); margin-bottom:14px; }
+  .loading-box{ text-align:center; padding:30px 0; font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft); letter-spacing:.08em; text-transform:uppercase; }
+  .conn-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--sage,#3f6b4c); margin-right:6px; }
+  .conn-dot.off{ background:var(--stamp); }
+
+  footer{ margin-top:20px; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="masthead">
+    <div class="eyebrow">Session en direct</div>
+    <h1>IMPOSTEUR</h1>
+    <div class="sub">chacun sur son téléphone</div>
+  </div>
+  <div class="folder" id="folder"></div>
+  <footer id="connFooter"></footer>
+</div>
+
+<script>
+"use strict";
+
+let S = {
+  view: "landing",  // landing | join | app
+  code: null,
+  pid: null,
+  name: "",
+  data: null,        // dernière charge utile reçue du serveur (SSE)
+  error: null,
+  pendingCode: ""
+};
+let es = null;
+
+const folder = document.getElementById('folder');
+const connFooter = document.getElementById('connFooter');
+
+/* ================= API ================= */
+async function api(path, method, body){
+  const res = await fetch(path, {
+    method: method||"GET",
+    headers: body ? {"Content-Type":"application/json"} : undefined,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let json = {};
+  try{ json = await res.json(); }catch(e){}
+  if(!res.ok) throw new Error(json.error || "Erreur serveur");
+  return json;
+}
+
+/* ================= Utilitaires ================= */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function currentUrl(withCode){
+  const base = location.origin + location.pathname;
+  return withCode ? base + '#j=' + withCode : base;
+}
+async function copyLink(url, btn){
+  let ok = false;
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(url); ok = true; }
+  }catch(e){}
+  if(!ok){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e){}
+  }
+  const original = btn.dataset.label || btn.textContent;
+  btn.dataset.label = original;
+  btn.textContent = ok ? "Copié ✓" : "Copie impossible — sélectionnez le lien";
+  setTimeout(()=>{ btn.textContent = original; }, 2400);
+  if(!ok){ const li=document.getElementById('linkInput'); if(li){li.focus(); li.select();} }
+}
+function saveSession(){
+  try{ localStorage.setItem('imposteur_session', JSON.stringify({code:S.code, pid:S.pid, name:S.name})); }catch(e){}
+}
+function clearSavedSession(){
+  try{ localStorage.removeItem('imposteur_session'); }catch(e){}
+}
+
+/* ================= Rendu racine ================= */
+function render(){
+  if(S.view==="landing") renderLanding();
+  else if(S.view==="join") renderJoinForm();
+  else if(S.view==="app") renderApp();
+  renderConnFooter();
+}
+function renderConnFooter(){
+  if(S.view!=="app"){ connFooter.innerHTML=""; return; }
+  const connected = es && es.readyState===1;
+  connFooter.innerHTML = `<span class="conn-dot ${connected?'':'off'}"></span>${connected?'connecté':'connexion…'}`;
+}
+
+/* ================= Accueil ================= */
+function renderLanding(){
+  folder.innerHTML = `
+    <h2 class="title">Salle de contrôle</h2>
+    <p class="desc">Créez un salon pour héberger la partie, ou rejoignez-en un avec le code donné par l'hôte.</p>
+    ${S.error ? `<div class="error-box">${escapeHtml(S.error)}</div>` : ``}
+    <div class="field">
+      <label class="flabel">Votre prénom</label>
+      <input type="text" id="hostName" maxlength="20" placeholder="Votre prénom">
+    </div>
+    <button class="btn" id="createBtn">Créer une partie</button>
+    <div class="btn-row">
+      <button class="btn outline" id="joinBtn" style="flex:1">Rejoindre avec un code</button>
+    </div>
+  `;
+  document.getElementById('createBtn').onclick = async ()=>{
+    const name = document.getElementById('hostName').value.trim();
+    if(!name){ S.error="Entrez votre prénom."; render(); return; }
+    S.error=null;
+    try{
+      const r = await api('/imposteur/api/session','POST',{hostName:name});
+      S.code=r.code; S.pid=r.playerId; S.name=name;
+      saveSession();
+      openStream();
+    }catch(e){ S.error=e.message; render(); }
+  };
+  document.getElementById('joinBtn').onclick = ()=>{ S.view="join"; S.error=null; render(); };
+}
+
+function renderJoinForm(){
+  folder.innerHTML = `
+    <h2 class="title">Rejoindre un salon</h2>
+    <p class="desc">Demandez le code à 4 lettres à l'hôte.</p>
+    ${S.error ? `<div class="error-box">${escapeHtml(S.error)}</div>` : ``}
+    <div class="field">
+      <label class="flabel">Code du salon</label>
+      <input type="text" id="codeInput" class="code-input" maxlength="4" value="${escapeHtml(S.pendingCode)}" placeholder="XXXX">
+    </div>
+    <div class="field">
+      <label class="flabel">Votre prénom</label>
+      <input type="text" id="nameInput" maxlength="20" placeholder="Votre prénom">
+    </div>
+    <button class="btn" id="joinConfirm">Rejoindre</button>
+    <div class="hint" id="backLink" style="text-decoration:underline;cursor:pointer;">← retour</div>
+  `;
+  document.getElementById('backLink').onclick = ()=>{ S.view="landing"; S.error=null; render(); };
+  document.getElementById('joinConfirm').onclick = async ()=>{
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    const name = document.getElementById('nameInput').value.trim();
+    if(code.length!==4){ S.error="Le code fait 4 lettres."; render(); return; }
+    if(!name){ S.error="Entrez votre prénom."; render(); return; }
+    S.error=null;
+    try{
+      const r = await api(`/imposteur/api/session/${code}/join`,'POST',{name});
+      S.code=code; S.pid=r.playerId; S.name=name;
+      saveSession();
+      openStream();
+    }catch(e){ S.error=e.message; render(); }
+  };
+}
+
+/* ================= Flux SSE ================= */
+function openStream(){
+  if(es) es.close();
+  S.view="app"; S.data=null; render();
+  es = new EventSource(`/imposteur/api/session/${S.code}/stream?playerId=${S.pid}`);
+  es.onmessage = (ev)=>{ S.data = JSON.parse(ev.data); render(); };
+  es.onopen = ()=> renderConnFooter();
+  es.onerror = ()=>{ renderConnFooter(); };
+}
+
+async function tryResume(){
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('imposteur_session')||'null'); }catch(e){}
+  const hash = location.hash.replace(/^#/, '');
+  if(hash.startsWith('j=')){ S.pendingCode = hash.slice(2).toUpperCase(); S.view="join"; return; }
+  if(saved && saved.code && saved.pid){
+    S.code=saved.code; S.pid=saved.pid; S.name=saved.name||"";
+    openStream();
+  }
+}
+
+/* ================= Application ================= */
+function renderApp(){
+  if(!S.data){ folder.innerHTML = `<div class="loading-box">Connexion au salon…</div>`; return; }
+  const d = S.data;
+  if(d.phase==="lobby"){ d.isHost ? renderHostLobby(d) : renderPlayerLobby(d); }
+  else { renderInGame(d); }
+}
+
+function renderHostLobby(d){
+  const url = currentUrl(S.code);
+  const canStart = d.players.length>=3;
+  const catKeys = Object.keys(d.categories);
+
+  folder.innerHTML = `
+    <h2 class="title">Salon ${S.code}</h2>
+    <p class="desc">Partagez le code ou le lien pour que les autres rejoignent depuis leur téléphone.</p>
+    <div class="code-box">
+      <div class="code">${S.code}</div>
+      <p class="hint" style="margin:8px 0 6px;">Appuyez sur le lien pour le sélectionner, ou utilisez le bouton pour le copier.</p>
+      <input type="text" id="linkInput" class="link-input" readonly value="${escapeHtml(url)}" onclick="this.select()">
+      <div><button class="btn outline sm copy-btn" id="copyBtn">Copier le lien</button></div>
+    </div>
+
+    <label class="flabel">Joueurs (${d.players.length})</label>
+    <ul class="player-list">
+      ${d.players.map(p=>`
+        <li class="${p.id===S.pid?'me':''}">
+          <span>${escapeHtml(p.name)}${p.id===S.pid?' <span class="tag">(vous)</span>':''}</span>
+          ${p.id!==S.pid?`<button class="rm" data-pid="${p.id}" title="Retirer">✕</button>`:''}
+        </li>`).join("")}
+    </ul>
+
+    <label class="flabel">Nombre d'undercover</label>
+    <div class="stepper" style="margin-bottom:14px">
+      <button id="decU">−</button><div class="count">${d.numUndercover}</div><button id="incU">+</button>
+    </div>
+    <label class="flabel">Nombre de zgeg (sans personnage)</label>
+    <div class="stepper" style="margin-bottom:14px">
+      <button id="decZ">−</button><div class="count">${d.numZgeg}</div><button id="incZ">+</button>
+    </div>
+
+    <label class="flabel">Catégorie</label>
+    <div class="toggle-row wrap">
+      ${catKeys.map(k=>`<button data-cat="${k}" class="cat-btn ${d.category===k?'on':''}">${escapeHtml(d.categories[k].label)}</button>`).join("")}
+    </div>
+
+    <button class="btn dark" id="distributeBtn" ${canStart?'':'disabled'}>Distribuer les cartes</button>
+    <div class="hint">${canStart?'':'Il faut au moins 3 joueurs pour lancer.'}</div>
+  `;
+
+  const copyBtnEl = document.getElementById('copyBtn');
+  copyBtnEl.onclick = ()=> copyLink(url, copyBtnEl);
+  folder.querySelectorAll('.rm').forEach(btn=>{
+    btn.onclick = async ()=>{ try{ await api(`/imposteur/api/session/${S.code}/kick`,'POST',{playerId:S.pid, targetId:btn.dataset.pid}); }catch(e){} };
+  });
+  document.getElementById('decU').onclick = ()=> configUpdate({numUndercover: Math.max(0,d.numUndercover-1)});
+  document.getElementById('incU').onclick = ()=>{ const max=Math.max(d.players.length-1,0); if(d.numUndercover+d.numZgeg<max) configUpdate({numUndercover:d.numUndercover+1}); };
+  document.getElementById('decZ').onclick = ()=> configUpdate({numZgeg: Math.max(0,d.numZgeg-1)});
+  document.getElementById('incZ').onclick = ()=>{ const max=Math.max(d.players.length-1,0); if(d.numUndercover+d.numZgeg<max) configUpdate({numZgeg:d.numZgeg+1}); };
+  folder.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.onclick = ()=> configUpdate({category:btn.dataset.cat});
+  });
+  document.getElementById('distributeBtn').onclick = async ()=>{
+    try{ await api(`/imposteur/api/session/${S.code}/distribute`,'POST',{playerId:S.pid}); }
+    catch(e){ S.error=e.message; render(); }
+  };
+}
+async function configUpdate(patch){
+  try{ await api(`/imposteur/api/session/${S.code}/config`,'POST',Object.assign({playerId:S.pid},patch)); }catch(e){}
+}
+
+function renderPlayerLobby(d){
+  folder.innerHTML = `
+    <h2 class="title">Salon ${S.code}</h2>
+    <p class="desc">En attente que l'hôte lance la partie…</p>
+    <label class="flabel">Joueurs (${d.players.length})</label>
+    <ul class="player-list">
+      ${d.players.map(p=>`<li class="${p.id===S.pid?'me':''}"><span>${escapeHtml(p.name)}${p.id===S.pid?' <span class="tag">(vous)</span>':''}</span></li>`).join("")}
+    </ul>
+    <div class="loading-box">⏳ patientez</div>
+  `;
+}
+
+function renderInGame(d){
+  const isBlank = d.phase==="clue" ? d.myRole==='blank' : null;
+  const myCardHtml = d.phase==="clue" ? `
+    <div class="my-card">
+      <div class="lbl">${isBlank ? "Votre dossier" : "Votre personnage"}</div>
+      <div class="val">${isBlank ? "— vide —" : escapeHtml(d.myCharacter||"…")}</div>
+      <div class="note">${isBlank ? "Improvisez sans jamais le laisser paraître." : "Gardez-le secret."}</div>
+    </div>` : ``;
+
+  if(d.phase==="clue"){
+    const isRound2 = d.clueRound===2;
+    const chips = d.order.map(p=>`<span class="order-chip">${escapeHtml(p.name)}</span>`).join("");
+    folder.innerHTML = `
+      <h2 class="title">Indices — Tour ${d.clueRound} / 2</h2>
+      ${myCardHtml}
+      <div class="turn-box">
+        <div class="label">Ordre de passage</div>
+        <div class="order-strip">${chips}</div>
+        ${d.isHost
+          ? `<button class="btn" id="clueNext" style="margin-top:22px">${isRound2 ? "Passer à la révélation" : "Passer au tour 2"}</button>`
+          : `<div class="hint" style="margin-top:16px">en attente de l'hôte…</div>`}
+      </div>
+      ${d.isHost ? `<div class="btn-row"><button class="btn outline sm" id="backLobby" style="flex:1">Retour au salon</button></div>` : ``}
+    `;
+    if(d.isHost){
+      document.getElementById('clueNext').onclick = async ()=>{ try{ await api(`/imposteur/api/session/${S.code}/advance`,'POST',{playerId:S.pid}); }catch(e){} };
+      document.getElementById('backLobby').onclick = async ()=>{ try{ await api(`/imposteur/api/session/${S.code}/lobby`,'POST',{playerId:S.pid}); }catch(e){} };
+    }
+  } else if(d.phase==="result"){
+    const rows = d.order.map(p=>{
+      const role = d.roles[p.id];
+      const isU = role==='B', isZ = role==='blank';
+      const char = isU ? d.charB : isZ ? "— vide —" : d.charA;
+      const tag = isU ? '<span class="imp-tag">UNDERCOVER</span>' : isZ ? '<span class="imp-tag zgeg">ZGEG</span>' : '';
+      return `<div class="reveal-row ${isU||isZ?'imp':''}"><span class="reveal-row-name">${escapeHtml(p.name)} ${tag}</span><span class="reveal-row-char">${escapeHtml(char)}</span></div>`;
+    }).join("");
+
+    folder.innerHTML = `
+      <h2 class="title">Verdict</h2>
+      <p class="desc">Tous les indices ont été donnés.</p>
+      <div class="reveal-list">${rows}</div>
+      ${d.isHost ? `<div class="btn-row"><button class="btn outline" id="replaySame">Rejouer, mêmes joueurs</button><button class="btn dark" id="backLobby">Modifier les joueurs</button></div>` : `<div class="hint">en attente de l'hôte…</div>`}
+    `;
+    if(d.isHost){
+      document.getElementById('replaySame').onclick = async ()=>{ try{ await api(`/imposteur/api/session/${S.code}/distribute`,'POST',{playerId:S.pid}); }catch(e){} };
+      document.getElementById('backLobby').onclick = async ()=>{ try{ await api(`/imposteur/api/session/${S.code}/lobby`,'POST',{playerId:S.pid}); }catch(e){} };
+    }
+  }
+}
+
+/* ================= Démarrage ================= */
+tryResume().then(()=>{ if(S.view!=="app") render(); });
+</script>
+</body>
+</html>
